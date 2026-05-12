@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Chin Exercises">
+<meta name="theme-color" content="#0d1117">
+<title>Chin Exercises</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2230;
+    --accent: #d4a96a;
+    --accent2: #e8c99a;
+    --text: #e6edf3;
+    --muted: #7d8590;
+    --check: #3fb950;
+    --border: rgba(212,169,106,0.15);
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+    overflow-x: hidden;
+  }
+
+  /* Ambient background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -40%;
+    right: -20%;
+    width: 70vw;
+    height: 70vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,169,106,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 0 20px; }
+
+  /* Header */
+  header {
+    padding: 60px 0 32px;
+    text-align: center;
+  }
+
+  .header-label {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(28px, 8vw, 38px);
+    line-height: 1.1;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent2);
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  /* Progress ring */
+  .progress-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 0 32px;
+  }
+
+  .ring-container { position: relative; width: 120px; height: 120px; }
+
+  .ring-container svg { transform: rotate(-90deg); }
+
+  .ring-bg { fill: none; stroke: var(--surface2); stroke-width: 8; }
+
+  .ring-progress {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .ring-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ring-count {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .ring-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .progress-msg {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--muted);
+    font-style: italic;
+    font-family: 'DM Serif Display', serif;
+    transition: color 0.3s;
+  }
+
+  /* Exercise list */
+  .exercise-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .exercise-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .exercise-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(212,169,106,0.04), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .exercise-item:active { transform: scale(0.98); }
+
+  .exercise-item.done {
+    border-color: rgba(63,185,80,0.25);
+    background: rgba(63,185,80,0.05);
+  }
+
+  .exercise-item.done::before { opacity: 0; }
+
+  .check-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--muted);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .exercise-item.done .check-circle {
+    background: var(--check);
+    border-color: var(--check);
+  }
+
+  .check-icon {
+    width: 14px;
+    height: 14px;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .exercise-item.done .check-icon {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .exercise-info { flex: 1; min-width: 0; }
+
+  .exercise-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    transition: color 0.2s;
+    line-height: 1.3;
+  }
+
+  .exercise-item.done .exercise-name {
+    color: var(--muted);
+  }
+
+  .exercise-detail {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-weight: 300;
+  }
+
+  .expand-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    flex-shrink: 0;
+    transition: transform 0.2s, color 0.2s;
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .exercise-item.expanded .expand-btn { transform: rotate(180deg); color: var(--accent); }
+
+  .exercise-desc {
+    display: none;
+    padding-top: 12px;
+    margin-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 300;
+    line-height: 1.6;
+  }
+
+  .exercise-item.expanded .exercise-desc { display: block; }
+
+  /* Sections */
+  .section {
+    margin-top: 32px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .section-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-icon { font-size: 16px; }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .section-body { padding: 18px; }
+
+  /* Reminder settings */
+  .time-picker-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .time-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 20px;
+    font-family: 'DM Serif Display', serif;
+    color: var(--text);
+    text-align: center;
+    outline: none;
+    -webkit-appearance: none;
+    color-scheme: dark;
+  }
+
+  .time-input:focus { border-color: var(--accent); }
+
+  .btn {
+    background: var(--accent);
+    color: #0d1117;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn:active { transform: scale(0.97); opacity: 0.9; }
+
+  .btn.secondary {
+    background: var(--surface2);
+    color: var(--text);
+  }
+
+  .notif-status {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .notif-status.ok { color: var(--check); }
+  .notif-status.warn { color: #f0883e; }
+
+  /* Drive log */
+  .drive-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    outline: none;
+    margin-bottom: 10px;
+  }
+
+  .drive-input:focus { border-color: var(--accent); }
+
+  .drive-input::placeholder { color: var(--muted); }
+
+  .log-entry {
+    font-size: 12px;
+    color: var(--muted);
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .log-entry:last-child { border-bottom: none; }
+
+  .log-date { font-weight: 500; color: var(--text); font-size: 13px; }
+
+  .log-badges { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+
+  .badge {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: rgba(63,185,80,0.15);
+    color: var(--check);
+    border: 1px solid rgba(63,185,80,0.2);
+  }
+
+  .log-empty { text-align: center; padding: 20px 0; color: var(--muted); font-size: 13px; font-style: italic; }
+
+  /* All done animation */
+  .complete-banner {
+    display: none;
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(63,185,80,0.1), rgba(212,169,106,0.08));
+    border: 1px solid rgba(63,185,80,0.2);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    animation: fadeUp 0.5s ease;
+  }
+
+  .complete-banner.show { display: block; }
+
+  .complete-emoji { font-size: 32px; margin-bottom: 6px; }
+
+  .complete-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--check);
+  }
+
+  .complete-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 40px 0 30px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* Streak */
+  .streak-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .stat-card {
+    flex: 1;
+    background: var(--surface2);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+
+  .stat-val {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    color: var(--accent2);
+  }
+
+  .stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: calc(env(safe-area-inset-bottom, 20px) + 16px);
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 20px;
+    border-radius: 30px;
+    font-size: 13px;
+    white-space: nowrap;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 999;
+    pointer-events: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="header-label">Daily Routine</div>
+    <h1>Face &amp; <em>Chin</em><br>Exercises</h1>
+    <div class="subtitle">Tap to check off · Resets at midnight</div>
+  </header>
+
+  <!-- Progress -->
+  <div class="progress-wrap">
+    <div class="ring-container">
+      <svg width="120" height="120" viewBox="0 0 120 120">
+        <circle class="ring-bg" cx="60" cy="60" r="52"/>
+        <circle class="ring-progress" id="ringProgress" cx="60" cy="60" r="52"
+          stroke-dasharray="326.7" stroke-dashoffset="326.7"/>
+      </svg>
+      <div class="ring-text">
+        <div class="ring-count" id="ringCount">0</div>
+        <div class="ring-label">of 7</div>
+      </div>
+    </div>
+    <div class="progress-msg" id="progressMsg">Ready to begin?</div>
+  </div>
+
+  <!-- Complete banner -->
+  <div class="complete-banner" id="completeBanner">
+    <div class="complete-emoji">🏆</div>
+    <div class="complete-text">All done for today!</div>
+    <div class="complete-sub">Your progress has been saved</div>
+  </div>
+
+  <!-- Exercise List -->
+  <div class="exercise-list" id="exerciseList"></div>
+
+  <!-- Stats -->
+  <div class="section" style="margin-top: 28px;">
+    <div class="section-header">
+      <span class="section-icon">📊</span>
+      <span class="section-title">Your Progress</span>
+    </div>
+    <div class="section-body">
+      <div class="streak-row">
+        <div class="stat-card">
+          <div class="stat-val" id="streakVal">0</div>
+          <div class="stat-label">Day Streak 🔥</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="totalVal">0</div>
+          <div class="stat-label">Sessions Done</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reminder -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">⏰</span>
+      <span class="section-title">Daily Reminder</span>
+    </div>
+    <div class="section-body">
+      <div class="time-picker-row">
+        <input type="time" class="time-input" id="reminderTime" value="08:00">
+        <button class="btn" onclick="setReminder()">Set</button>
+      </div>
+      <div class="notif-status" id="notifStatus">Tap Set to enable your daily reminder.</div>
+    </div>
+  </div>
+
+  <!-- Google Drive Log -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">📁</span>
+      <span class="section-title">Google Drive Log</span>
+    </div>
+    <div class="section-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">
+        Paste your Google Apps Script Web App URL below to automatically log your sessions to a Google Sheet.
+      </p>
+      <input type="url" class="drive-input" id="driveUrl" placeholder="https://script.google.com/macros/s/...">
+      <button class="btn" style="width:100%;margin-bottom:14px" onclick="saveDriveUrl()">Save URL</button>
+      <button class="btn secondary" style="width:100%;margin-bottom:16px" onclick="testLog()">Test Connection</button>
+
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:500;">Recent Logs</div>
+      <div id="logHistory"></div>
+    </div>
+  </div>
+
+  <!-- Setup Guide -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🔧</span>
+      <span class="section-title">Google Sheet Setup Guide</span>
+    </div>
+    <div class="section-body" style="font-size:13px;color:var(--muted);line-height:1.8;">
+      <b style="color:var(--text);">One-time setup (5 minutes):</b><br><br>
+      1. Go to <a href="https://sheets.new" target="_blank" style="color:var(--accent);">sheets.new</a> and create a new spreadsheet<br>
+      2. Click <b style="color:var(--text)">Extensions → Apps Script</b><br>
+      3. Delete existing code and paste the script below<br>
+      4. Click <b style="color:var(--text)">Deploy → New deployment → Web app</b><br>
+      5. Set "Who has access" to <b style="color:var(--text)">Anyone</b><br>
+      6. Copy the Web App URL and paste it above<br><br>
+
+      <b style="color:var(--text);">Apps Script to paste:</b><br>
+      <div style="background:var(--bg);border-radius:8px;padding:12px;margin-top:8px;font-family:monospace;font-size:11px;color:#7ee787;line-height:1.6;overflow-x:auto;white-space:pre-wrap;word-break:break-all;">function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  
+  // Add header if sheet is empty
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(['Date', 'Exercises Done', 'Total', 'Completed?', 'Exercises List']);
+  }
+
+  // Update today's row if it exists, otherwise append
+  var values = sheet.getDataRange().getValues();
+  var todayRow = -1;
+  for (var i = 1; i &lt; values.length; i++) {
+    if (values[i][0] === data.date) { todayRow = i + 1; break; }
+  }
+  var row = [data.date, data.count, data.total, data.completed, data.exercises];
+  if (todayRow > 0) {
+    sheet.getRange(todayRow, 1, 1, 5).setValues([row]);
+  } else {
+    sheet.appendRow(row);
+  }
+  
+  return ContentService
+    .createTextOutput(JSON.stringify({status: 'ok'}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  return ContentService
+    .createTextOutput(JSON.stringify({status: 'ok', message: 'Chin Exercise Logger'}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</div>
+    </div>
+  </div>
+
+  <footer>Made with ♥ for your daily practice</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Data ─────────────────────────────────────────────────────────────────────
+const EXERCISES = [
+  {
+    id: 'mewing',
+    name: 'Mewing',
+    detail: 'Tongue posture throughout the day',
+    desc: 'Rest your entire tongue flat against the roof of your mouth, including the back of the tongue. Keep your lips together and teeth lightly touching or slightly apart. Breathe through your nose. Maintain this posture as a habit throughout the day.'
+  },
+  {
+    id: 'pucker',
+    name: 'Pucker Up',
+    detail: '10 reps · 20 seconds each',
+    desc: 'Bring your upper and lower lips together and push them slightly forward as if about to kiss. Then tilt your head back to look at the ceiling, keeping shoulders and back straight. Hold for 20 seconds, then release. Repeat 10 times.'
+  },
+  {
+    id: 'tongue',
+    name: 'Tongue Stretch',
+    detail: '20–30 reps',
+    desc: 'Open your mouth and stretch your tongue out as far as possible toward your chin. Hold briefly, then retract. This activates the muscles along the front of your neck where chin fat is stored. Do 20–30 repetitions at a steady pace.'
+  },
+  {
+    id: 'ball',
+    name: 'Ball Exercise',
+    detail: '10–20 reps',
+    desc: 'Place a soft ball (tennis ball or stress ball) under your chin. Press your chin down to squeeze the ball firmly, then release to the starting position. Beginners: 10 reps. Work up to 20 as you get stronger.'
+  },
+  {
+    id: 'jaw_jut',
+    name: 'Bottom Jaw Jut',
+    detail: 'Tilt head back · Left & right turns',
+    desc: 'Tilt your head back to stare at the ceiling. Push your lower jaw forward as far as possible. Then slowly turn your head to the left, hold, return to center, then turn right. Repeat the jaw-forward movement throughout. Return your head to neutral position.'
+  },
+  {
+    id: 'neck',
+    name: 'Neck Stretch',
+    detail: '10–20 reps',
+    desc: 'Tilt your head back to look at the ceiling. Press the tip of your tongue against the roof of your mouth (no excessive force — this is gentler than mewing). Hold briefly, then bring your head back to neutral. Repeat 10–20 times.'
+  },
+  {
+    id: 'jaw_straight',
+    name: 'Straight Jaw Jut',
+    detail: '10 reps',
+    desc: 'Look up at the ceiling with your neck stretched. Push your lower jaw straight forward, hold for a moment, then bring it back to normal. Do this 10 times, then lower your head back to neutral position.'
+  }
+];
+
+const PROGRESS_MSGS = [
+  'Ready to begin?',
+  'Great start! Keep going.',
+  'You\'re building momentum.',
+  'Halfway there!',
+  'More than halfway — nice!',
+  'Almost done — push through.',
+  'One more to go!',
+  'All done! Incredible work. 🏆'
+];
+
+// ─── State ────────────────────────────────────────────────────────────────────
+function getState() {
+  const raw = localStorage.getItem('chinState');
+  if (raw) return JSON.parse(raw);
+  return { done: {}, lastDate: '', streak: 0, lastStreakDate: '', totalSessions: 0 };
+}
+
+function saveState(s) {
+  localStorage.setItem('chinState', JSON.stringify(s));
+}
+
+function todayStr() {
+  return new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+}
+
+async function checkMidnightReset(state) {
+  const today = todayStr();
+  if (state.lastDate !== today) {
+    // Cancel any pending debounced log — we're about to log synchronously
+    if (window._logDebounce) {
+      clearTimeout(window._logDebounce);
+      window._logDebounce = null;
+    }
+    // Log yesterday's progress FIRST, before wiping state
+    if (state.lastDate && Object.keys(state.done).length > 0) {
+      await logToDrive(state); // await ensures it completes before reset
+    }
+    state.done = {};
+    state.lastDate = today;
+    saveState(state);
+  }
+  return state;
+}
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+async function render() {
+  let state = getState();
+  state = await checkMidnightReset(state);
+
+  const doneCount = Object.keys(state.done).length;
+  const list = document.getElementById('exerciseList');
+  list.innerHTML = '';
+
+  EXERCISES.forEach(ex => {
+    const isDone = !!state.done[ex.id];
+    const item = document.createElement('div');
+    item.className = 'exercise-item' + (isDone ? ' done' : '');
+    item.innerHTML = `
+      <div class="check-circle">
+        <svg class="check-icon" viewBox="0 0 14 14" fill="none">
+          <polyline points="2,7 5.5,10.5 12,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="exercise-info">
+        <div class="exercise-name">${ex.name}</div>
+        <div class="exercise-detail">${ex.detail}</div>
+        <div class="exercise-desc">${ex.desc}</div>
+      </div>
+      <div class="expand-btn">⌄</div>
+    `;
+
+    // Toggle done on main area (not expand btn)
+    item.addEventListener('click', (e) => {
+      if (e.target.closest('.expand-btn')) {
+        item.classList.toggle('expanded');
+        return;
+      }
+      toggleExercise(ex.id);
+    });
+
+    list.appendChild(item);
+  });
+
+  // Update ring
+  const circumference = 326.7;
+  const offset = circumference - (doneCount / 7) * circumference;
+  document.getElementById('ringProgress').style.strokeDashoffset = offset;
+  document.getElementById('ringCount').textContent = doneCount;
+  document.getElementById('progressMsg').textContent = PROGRESS_MSGS[doneCount];
+
+  // Complete banner
+  const banner = document.getElementById('completeBanner');
+  banner.classList.toggle('show', doneCount === 7);
+
+  // Stats
+  document.getElementById('streakVal').textContent = state.streak || 0;
+  document.getElementById('totalVal').textContent = state.totalSessions || 0;
+
+  renderLogHistory();
+}
+
+function toggleExercise(id) {
+  let state = getState();
+  if (state.done[id]) {
+    delete state.done[id];
+  } else {
+    state.done[id] = Date.now();
+  }
+
+  const doneCount = Object.keys(state.done).length;
+
+  // Update streak & session count when all 7 done
+  if (doneCount === 7) {
+    const today = todayStr();
+    if (state.lastStreakDate !== today) {
+      state.totalSessions = (state.totalSessions || 0) + 1;
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yStr = yesterday.toLocaleDateString('en-CA');
+      if (state.lastStreakDate === yStr) {
+        state.streak = (state.streak || 0) + 1;
+      } else {
+        state.streak = 1;
+      }
+      state.lastStreakDate = today;
+    }
+  }
+
+  saveState(state);
+
+  // Log to Drive on every change (debounced 3s so rapid taps don't spam)
+  if (window._logDebounce) clearTimeout(window._logDebounce);
+  window._logDebounce = setTimeout(() => {
+    if (Object.keys(getState().done).length > 0) logToDrive(getState());
+  }, 3000);
+
+  render();
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+async function setReminder() {
+  const timeVal = document.getElementById('reminderTime').value;
+  if (!timeVal) return;
+
+  localStorage.setItem('reminderTime', timeVal);
+
+  if (!('Notification' in window)) {
+    setStatus('notifStatus', 'warn', '⚠️ Notifications are not supported in this browser. Add the app to your Home Screen first, then try again.');
+    return;
+  }
+
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') {
+    setStatus('notifStatus', 'warn', '⚠️ Permission denied. Please enable notifications for this page in Settings → Safari → [this site].');
+    return;
+  }
+
+  scheduleNotification(timeVal);
+  setStatus('notifStatus', 'ok', `✅ Reminder set for ${formatTime(timeVal)} daily. Add this page to your Home Screen to ensure notifications work.`);
+  showToast('Reminder set for ' + formatTime(timeVal));
+}
+
+function scheduleNotification(timeVal) {
+  // Clear existing
+  if (window._reminderTimeout) clearTimeout(window._reminderTimeout);
+
+  function fireNext() {
+    const [h, m] = timeVal.split(':').map(Number);
+    const now = new Date();
+    const next = new Date();
+    next.setHours(h, m, 0, 0);
+    if (next <= now) next.setDate(next.getDate() + 1);
+    const ms = next - now;
+
+    window._reminderTimeout = setTimeout(() => {
+      const state = getState();
+      const doneCount = Object.keys(state.done).length;
+      if (doneCount < 7) {
+        new Notification('Time for your chin exercises! 💪', {
+          body: `${doneCount}/7 done today. Keep it up!`,
+          icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">💪</text></svg>'
+        });
+      }
+      fireNext(); // schedule next day
+    }, ms);
+  }
+
+  fireNext();
+}
+
+// ─── Google Drive Logging ─────────────────────────────────────────────────────
+function saveDriveUrl() {
+  const url = document.getElementById('driveUrl').value.trim();
+  if (!url) return;
+  localStorage.setItem('driveUrl', url);
+  showToast('Drive URL saved!');
+}
+
+async function logToDrive(state) {
+  const url = localStorage.getItem('driveUrl');
+  if (!url) return;
+
+  const doneNames = EXERCISES.filter(e => state.done[e.id]).map(e => e.name);
+  const today = state.lastDate || todayStr();
+  const payload = {
+    date: today,
+    count: doneNames.length,
+    total: EXERCISES.length,
+    completed: doneNames.length === EXERCISES.length ? 'Yes' : 'Partial',
+    exercises: doneNames.join(', ')
+  };
+
+  try {
+    await fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    // Upsert local log — replace today's entry if it exists
+    const logs = JSON.parse(localStorage.getItem('logHistory') || '[]');
+    const idx = logs.findIndex(l => l.date === today);
+    const entry = { ...payload, logged: new Date().toISOString() };
+    if (idx >= 0) logs[idx] = entry; else logs.unshift(entry);
+    localStorage.setItem('logHistory', JSON.stringify(logs.slice(0, 30)));
+    renderLogHistory();
+  } catch (err) {
+    console.error('Drive log failed:', err);
+  }
+}
+
+async function testLog() {
+  const url = document.getElementById('driveUrl').value.trim() || localStorage.getItem('driveUrl');
+  if (!url) {
+    showToast('Please enter your Drive URL first');
+    return;
+  }
+  showToast('Sending test log...');
+  const testState = {
+    done: { mewing: 1, pucker: 1 },
+    lastDate: todayStr()
+  };
+  await logToDrive({ ...testState, streak: 1, totalSessions: 1 });
+  showToast('Test sent! Check your Google Sheet.');
+}
+
+function renderLogHistory() {
+  const logs = JSON.parse(localStorage.getItem('logHistory') || '[]');
+  const el = document.getElementById('logHistory');
+  if (!logs.length) {
+    el.innerHTML = '<div class="log-empty">No sessions logged yet.<br>Complete all exercises to log automatically.</div>';
+    return;
+  }
+  el.innerHTML = logs.slice(0, 5).map(log => {
+    const isComplete = log.completed === 'Yes' || log.count === log.total;
+    const statusColor = isComplete ? 'var(--check)' : 'var(--accent)';
+    const statusLabel = isComplete ? '✅ Complete' : `⚡ Partial`;
+    return `
+    <div class="log-entry">
+      <div>
+        <div class="log-date">${log.date}</div>
+        <div style="font-size:11px;color:${statusColor};margin-top:2px">${statusLabel} · ${log.count}/${log.total}</div>
+      </div>
+      <div class="log-badges">
+        ${log.exercises ? log.exercises.split(', ').map(e => `<span class="badge">${e}</span>`).join('') : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── Utilities ────────────────────────────────────────────────────────────────
+function formatTime(t) {
+  const [h, m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
+}
+
+function setStatus(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = 'notif-status ' + type;
+  el.textContent = msg;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+function init() {
+  // Restore saved time
+  const saved = localStorage.getItem('reminderTime');
+  if (saved) {
+    document.getElementById('reminderTime').value = saved;
+    // Reschedule if permission already granted
+    if (Notification?.permission === 'granted') {
+      scheduleNotification(saved);
+      setStatus('notifStatus', 'ok', `✅ Reminder active at ${formatTime(saved)} daily.`);
+    }
+  }
+
+  // Restore Drive URL
+  const driveUrl = localStorage.getItem('driveUrl');
+  if (driveUrl) document.getElementById('driveUrl').value = driveUrl;
+
+  render();
+
+  // Check for midnight reset every minute
+  setInterval(() => {
+    const state = getState();
+    const today = todayStr();
+    if (state.lastDate !== today) {
+      render();
+    }
+  }, 60000);
+}
+
+init();
+</script>
+</body>
+</html>
